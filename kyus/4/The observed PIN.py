@@ -22,15 +22,55 @@
 
     Detective, we are counting on you!
 """
-KEYPAD = [
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 9],
-    [-1, 0, -1]
-]
+from itertools import product
 
 
 def get_pins(observed):
+    keypad = Keypad()
+    adjacent_digits = []
 
     for digit in observed:
-        print(digit)
+        x, y = keypad.get_digit_index(digit)
+        adjacent_digits.append(keypad.get_adjacent_digits(x, y))
+    return ["".join(p) for p in product(*adjacent_digits)]
+
+
+class Keypad:
+    def __init__(self, keypad: list = None):
+        self.keypad = keypad or [
+            ['1', '2', '3'],
+            ['4', '5', '6'],
+            ['7', '8', '9'],
+            [' ', '0', ' ']
+        ]
+
+    def get_digit_index(self, digit: str):
+        for row_idx, row in enumerate(self.keypad):
+            if digit in row:
+                return row_idx, row.index(digit)
+
+        raise IndexError(f"Digit '{digit}' not on the keypad.")
+
+    def get_adjacent_digits(self, x: int, y: int):
+        """
+        Returns a list of digits adjacent to (x, y)
+        from: 
+            top digit (x - 1, y)
+            middle digits (x, y - 1:y + 1)
+            bottom digit (x + 1, y)
+        """
+        top = self.keypad[x - 1][y] if x != 0 else None
+        mid = self.keypad[x][max(y - 1, 0): min(y + 2, 3)]
+        bot = self.keypad[x + 1][y] if x < 3 else None
+
+        if ' ' in mid:
+            mid = [i for i in mid if i != ' ']
+
+        digits = []
+        if top:
+            digits.append(top)
+        for i in mid:
+            digits.append(i)
+        if bot and bot != ' ':
+            digits.append(bot)
+        return digits
